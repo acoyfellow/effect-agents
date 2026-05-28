@@ -20,11 +20,13 @@ import { modelLayer, type ProviderConfig } from "../src/model.ts"
 
 // Static landing assets bundled into the Worker at build time.
 // `wrangler.jsonc` rules { type: "Text" } maps these globs to string imports.
-import landingHtml from "./static/index.html"
 import ogSvg from "./static/og.svg"
 import faviconSvg from "./static/favicon.svg"
 import robotsTxt from "./static/robots.txt"
 import sitemapXml from "./static/sitemap.xml"
+
+// Generated docs site (see scripts/build-site.ts).
+import { pages } from "./site/pages.ts"
 
 import { ParallelResearchAgent } from "../examples/01-parallel-research/agent.ts"
 import {
@@ -75,10 +77,13 @@ export default {
     const url = new URL(request.url)
     const path = url.pathname
 
-    // Static landing page + SEO surfaces. Served with sensible caching.
+    // Static landing page + docs + SEO surfaces. Served with sensible caching.
     if (request.method === "GET" || request.method === "HEAD") {
-      if (path === "/" || path === "/index.html") {
-        return new Response(landingHtml as unknown as string, {
+      // Try the generated docs site first (homepage, /agents/*, /tutorials/*,
+      // /how-to/*, /reference/*, /explanation/*, /architecture, /api).
+      const docsPath = path === "/index.html" ? "/" : path.replace(/\/$/, "") || "/"
+      if (pages[docsPath]) {
+        return new Response(pages[docsPath], {
           headers: {
             "content-type": "text/html; charset=utf-8",
             "cache-control": "public, max-age=300, s-maxage=3600"

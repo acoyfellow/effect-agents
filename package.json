@@ -11,8 +11,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "worker:dev": "wrangler dev --config worker/wrangler.jsonc",
-    "worker:deploy": "wrangler deploy --config worker/wrangler.jsonc"
+    "site:build": "bun scripts/build-site.ts",
+    "worker:dev": "bun run site:build && wrangler dev --config worker/wrangler.jsonc",
+    "worker:deploy": "bun run site:build && wrangler deploy --config worker/wrangler.jsonc"
   },
   "dependencies": {
     "@effect/ai-openai-compat": "4.0.0-beta.73",
@@ -22,6 +23,8 @@
     "@biomejs/biome": "^2.4.15",
     "@cloudflare/workers-types": "^4.20260521.1",
     "@types/bun": "latest",
+    "marked": "^18.0.4",
+    "shiki": "^4.1.0",
     "typescript": "^5.6.3",
     "wrangler": "^4.0.0"
   }
