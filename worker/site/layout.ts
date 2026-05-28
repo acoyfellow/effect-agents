@@ -141,16 +141,106 @@ export const renderLayout = (opts: LayoutOptions): string => {
       padding: 4rem clamp(1.5rem, 5vw, 4rem) 6rem;
       max-width: 980px;
     }
+
+    /* Mobile-drawer plumbing — hidden by default on desktop. */
+    .nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+    .topbar { display: none; }
+    .nav-backdrop { display: none; }
+    .nav-close { display: none; }
+
     @media (max-width: 880px) {
       .shell { grid-template-columns: 1fr; }
-      .sidebar {
-        position: static;
-        height: auto;
-        border-right: 0;
+
+      /* Topbar pinned with brand + hamburger. */
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        padding: .75rem 1.25rem;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--line);
-        padding: 1.5rem 1.5rem;
       }
-      .main { padding: 2.5rem 1.5rem 4rem; }
+      .topbar .brand {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 1rem;
+      }
+      .topbar .brand .v { display: none; }
+      .nav-button {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-family: var(--mono);
+        font-size: .8rem;
+        letter-spacing: 0.05em;
+        color: var(--fg);
+        padding: .4rem .75rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        cursor: pointer;
+        background: transparent;
+      }
+      .nav-button .bars { display: inline-flex; flex-direction: column; gap: 3px; }
+      .nav-button .bars span {
+        display: block; width: 14px; height: 1.5px; background: var(--fg); border-radius: 1px;
+      }
+
+      /* Off-canvas drawer. */
+      .sidebar {
+        position: fixed;
+        top: 0; bottom: 0; left: 0;
+        width: min(85vw, 320px);
+        height: 100vh;
+        z-index: 40;
+        padding: 3rem 1.5rem 4rem;
+        border-right: 1px solid var(--line);
+        background: var(--bg);
+        transform: translateX(-105%);
+        transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+      }
+      .nav-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 1rem; right: 1rem;
+        width: 32px; height: 32px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        font-family: var(--mono);
+        font-size: 1.1rem;
+        line-height: 1;
+        color: var(--fg);
+        cursor: pointer;
+        background: transparent;
+      }
+
+      .nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 35;
+        background: rgba(0,0,0,.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .22s ease-out;
+      }
+
+      /* Checked-checkbox toggle: slide drawer in, show backdrop, lock scroll. */
+      .nav-toggle:checked ~ .shell .sidebar {
+        transform: translateX(0);
+        box-shadow: 0 12px 40px rgba(0,0,0,.4);
+      }
+      .nav-toggle:checked ~ .shell .nav-backdrop { opacity: 1; pointer-events: auto; }
+      .nav-toggle:checked ~ .shell { overflow: hidden; height: 100vh; }
+
+      .main { padding: 1.5rem 1.25rem 4rem; }
     }
 
     /* ──────────────────────────────────────────────── */
@@ -369,15 +459,15 @@ export const renderLayout = (opts: LayoutOptions): string => {
     /* Shiki blocks — keep shiki's per-span inline colors. Only restyle the
        outer pre; never set color on the inner code. */
     pre.shiki {
-      margin: 1.5rem 0;
-      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      padding: .65rem .9rem;
       background-color: #0d1117 !important;
       border: 1px solid var(--line);
       border-radius: 6px;
       overflow-x: auto;
       font-family: var(--mono);
-      font-size: .85rem;
-      line-height: 1.6;
+      font-size: .82rem;
+      line-height: 1.4;
     }
     pre.shiki code {
       display: block;
@@ -386,16 +476,19 @@ export const renderLayout = (opts: LayoutOptions): string => {
       border-radius: 0;
       border: 0;
       font-size: inherit;
+      line-height: inherit;
       /* deliberately no color here — shiki sets per-span inline colors */
     }
-    pre.shiki .line { display: block; min-height: 1.6em; }
+    /* No min-height — blank lines are visually compact, non-blank lines size
+       to their own content. */
+    pre.shiki .line { display: block; }
 
     /* ──────────────────────────────────────────────── */
     /*  Agent source block                               */
     /* ──────────────────────────────────────────────── */
     /* Agent source block: outer chrome for the highlighted agent.ts on /agents/<slug> */
-    .source-block { margin: 2rem 0 3rem; }
-    .source pre.shiki { margin: 0; font-size: .82rem; }
+    .source-block { margin: 1.5rem 0 2.5rem; }
+    .source pre.shiki { margin: 0; font-size: .78rem; line-height: 1.4; }
 
     footer {
       margin-top: 6rem;
@@ -411,8 +504,18 @@ export const renderLayout = (opts: LayoutOptions): string => {
   </style>
 </head>
 <body>
+<input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
 <div class="shell">
+  <header class="topbar">
+    <a href="/" class="brand">effect-agents<span class="v">v4 · beta</span></a>
+    <label for="nav-toggle" class="nav-button" aria-label="Open navigation">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+      Menu
+    </label>
+  </header>
+  <label for="nav-toggle" class="nav-backdrop" aria-hidden="true"></label>
   <aside class="sidebar">
+    <label for="nav-toggle" class="nav-close" aria-label="Close navigation">×</label>
     <a href="/" class="brand">effect-agents<span class="v">v4 · beta</span></a>
 
     ${renderNavSection(nav.agents, pathname)}
