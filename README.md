@@ -2,6 +2,8 @@
 
 > Five hero examples of effectful AI agents built on **[Effect v4 (beta)](https://github.com/Effect-TS/effect-smol)**. Pure Effect programs; one local entrypoint per example; one Cloudflare Worker hosts all five.
 
+**Live demo:** <https://effect-agents.coey.dev> — the same Worker that runs the gallery.
+
 ```sh
 git clone https://github.com/acoyfellow/effect-agents
 cd effect-agents

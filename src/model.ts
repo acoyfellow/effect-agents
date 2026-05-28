@@ -36,7 +36,7 @@ export type ProviderConfig =
 
 const DEFAULTS = {
   openrouter: "openai/gpt-4o-mini",
-  "workers-ai": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "workers-ai": "@cf/moonshotai/kimi-k2.6",
   openai: "gpt-4o-mini"
 } as const
 

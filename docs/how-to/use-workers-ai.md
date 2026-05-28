@@ -22,7 +22,7 @@ https://api.cloudflare.com/client/v4/accounts/<account_id>/ai/v1
 
 ## Choose a model
 
-Default is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. Override:
+Default is `@cf/moonshotai/kimi-k2.6` (Moonshot's reasoning model, available on Workers AI). Override:
 
 ```sh
 EFFECT_AGENTS_MODEL=@cf/meta/llama-3.1-8b-instruct \

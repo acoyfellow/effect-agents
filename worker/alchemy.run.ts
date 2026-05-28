@@ -25,7 +25,7 @@ const worker = await Worker(`effect-agents-${STAGE}`, {
   bindings: {
     CLOUDFLARE_ACCOUNT_ID: accountId,
     CLOUDFLARE_API_TOKEN: apiToken,
-    EFFECT_AGENTS_MODEL: process.env.EFFECT_AGENTS_MODEL ?? "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    EFFECT_AGENTS_MODEL: process.env.EFFECT_AGENTS_MODEL ?? "@cf/moonshotai/kimi-k2.6"
   }
 })
 

@@ -4,9 +4,19 @@
   "main": "worker.ts",
   "compatibility_date": "2026-05-21",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "effect-agents.coey.dev", "custom_domain": true }
+  ],
+  "rules": [
+    { "type": "Text", "globs": ["**/*.html", "**/*.svg", "**/*.txt", "**/*.xml"], "fallthrough": true }
+  ],
   "vars": {
-    "EFFECT_AGENTS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    "EFFECT_AGENTS_MODEL": "@cf/moonshotai/kimi-k2.6",
+    "CLOUDFLARE_ACCOUNT_ID": "bfcb6ac5b3ceaf42a09607f6f7925823"
   }
-  // Provide CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN via `wrangler secret put`
-  // before deploying. Locally, `bun run worker:dev` reads them from the env.
+  // CLOUDFLARE_API_TOKEN is set via `wrangler secret put CLOUDFLARE_API_TOKEN`
+  // before deploying. Fork users: replace CLOUDFLARE_ACCOUNT_ID above with
+  // your own, then `wrangler secret put CLOUDFLARE_API_TOKEN`.
 }

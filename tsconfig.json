@@ -16,6 +16,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["examples/**/*.ts", "src/**/*.ts", "worker/worker.ts", "probes/**/*.ts", "scripts/**/*.ts"],
+  "include": ["examples/**/*.ts", "src/**/*.ts", "worker/worker.ts", "worker/static.d.ts", "probes/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "worker/alchemy.run.ts"]
 }

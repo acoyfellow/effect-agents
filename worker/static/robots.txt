@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://effect-agents.coey.dev/sitemap.xml

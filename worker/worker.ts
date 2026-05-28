@@ -18,6 +18,14 @@
 import { Effect, Layer, Stream } from "effect"
 import { modelLayer, type ProviderConfig } from "../src/model.ts"
 
+// Static landing assets bundled into the Worker at build time.
+// `wrangler.jsonc` rules { type: "Text" } maps these globs to string imports.
+import landingHtml from "./static/index.html"
+import ogSvg from "./static/og.svg"
+import faviconSvg from "./static/favicon.svg"
+import robotsTxt from "./static/robots.txt"
+import sitemapXml from "./static/sitemap.xml"
+
 import { ParallelResearchAgent } from "../examples/01-parallel-research/agent.ts"
 import {
   StreamingToolsAgent,
@@ -66,6 +74,44 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     const path = url.pathname
+
+    // Static landing page + SEO surfaces. Served with sensible caching.
+    if (request.method === "GET" || request.method === "HEAD") {
+      if (path === "/" || path === "/index.html") {
+        return new Response(landingHtml as unknown as string, {
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "public, max-age=300, s-maxage=3600"
+          }
+        })
+      }
+      if (path === "/og.svg") {
+        return new Response(ogSvg, {
+          headers: {
+            "content-type": "image/svg+xml; charset=utf-8",
+            "cache-control": "public, max-age=86400"
+          }
+        })
+      }
+      if (path === "/favicon.svg" || path === "/favicon.ico") {
+        return new Response(faviconSvg, {
+          headers: {
+            "content-type": "image/svg+xml; charset=utf-8",
+            "cache-control": "public, max-age=86400"
+          }
+        })
+      }
+      if (path === "/robots.txt") {
+        return new Response(robotsTxt, {
+          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=86400" }
+        })
+      }
+      if (path === "/sitemap.xml") {
+        return new Response(sitemapXml, {
+          headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=86400" }
+        })
+      }
+    }
 
     if (path === "/health") {
       return json({

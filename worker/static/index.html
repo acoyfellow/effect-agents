@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>effect-agents — Five hero examples of effectful AI agents</title>
+  <link rel="canonical" href="https://effect-agents.coey.dev/" />
+  <meta name="description" content="Five hero examples of effectful AI agents built on Effect v4 (beta). Pure Effect programs; one Cloudflare Worker hosts all five. parallel-research, streaming-tools, approval-gated, typed-errors, mcp-from-toolkit." />
+  <meta name="author" content="acoyfellow" />
+  <meta name="keywords" content="effect, effect-ts, ai agents, llm agents, typescript, cloudflare workers, mcp, model context protocol, structured concurrency, langchain alternative" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://effect-agents.coey.dev/" />
+  <meta property="og:site_name" content="effect-agents" />
+  <meta property="og:title" content="effect-agents — Five hero examples of effectful AI agents" />
+  <meta property="og:description" content="Pure Effect programs. One Cloudflare Worker hosts all five. Structured concurrency, retry, typed errors, human-in-the-loop, MCP — all from the Effect v4 standard library." />
+  <meta property="og:image" content="https://effect-agents.coey.dev/og.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/svg+xml" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@acoyfellow" />
+  <meta name="twitter:creator" content="@acoyfellow" />
+  <meta name="twitter:title" content="effect-agents — Five hero examples of effectful AI agents" />
+  <meta name="twitter:description" content="Pure Effect programs. One Cloudflare Worker hosts all five. Structured concurrency, retry, typed errors, HITL, MCP — from Effect v4." />
+  <meta name="twitter:image" content="https://effect-agents.coey.dev/og.svg" />
+
+  <!-- Theme + icons -->
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "effect-agents",
+        "url": "https://effect-agents.coey.dev",
+        "description": "Five hero examples of effectful AI agents built on Effect v4 (beta).",
+        "publisher": { "@id": "https://effect-agents.coey.dev/#org" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://effect-agents.coey.dev/#org",
+        "name": "effect-agents",
+        "url": "https://effect-agents.coey.dev",
+        "logo": "https://effect-agents.coey.dev/og.svg",
+        "sameAs": ["https://github.com/acoyfellow/effect-agents", "https://twitter.com/acoyfellow"]
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "name": "effect-agents",
+        "codeRepository": "https://github.com/acoyfellow/effect-agents",
+        "programmingLanguage": "TypeScript",
+        "license": "https://opensource.org/licenses/MIT",
+        "runtimePlatform": "Cloudflare Workers · Bun",
+        "description": "Five hero examples of effectful AI agents built on Effect v4 (beta). Pure Effect programs; one Cloudflare Worker hosts all five.",
+        "applicationCategory": "DeveloperApplication"
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-2: #14121f;
+      --fg: #e4e4e7;
+      --fg-2: #a1a1aa;
+      --fg-3: #71717a;
+      --accent: #a78bfa;
+      --accent-2: #34d399;
+      --border: #27272a;
+      --mono: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #fafafa; --bg-2: #fff; --fg: #18181b; --fg-2: #3f3f46; --fg-3: #71717a; --border: #e4e4e7; --accent: #7c3aed; --accent-2: #059669; }
+    }
+    *,*:before,*:after { box-sizing: border-box; }
+    body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.6; font-size: 16px; -webkit-font-smoothing: antialiased; }
+    main { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+    header { margin-bottom: 3rem; }
+    h1 { font-family: var(--mono); font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; margin: 0 0 .5rem; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .tagline { font-size: 1.25rem; color: var(--fg-2); margin: 0 0 1.5rem; }
+    .quick { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: .95rem; overflow-x: auto; }
+    .quick code { color: var(--accent-2); }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 3rem 0 1rem; color: var(--fg); }
+    .gallery { display: grid; grid-template-columns: 1fr; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+    .gallery li { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; }
+    .gallery a { color: var(--fg); text-decoration: none; display: flex; flex-direction: column; gap: .25rem; }
+    .gallery a:hover { color: var(--accent); }
+    .gallery .num { font-family: var(--mono); font-size: .8rem; color: var(--fg-3); }
+    .gallery .name { font-family: var(--mono); font-size: 1rem; font-weight: 600; }
+    .gallery .hero { font-size: .9rem; color: var(--fg-2); }
+    .gallery .hero code { font-family: var(--mono); font-size: .85rem; color: var(--accent-2); background: rgba(52, 211, 153, .08); padding: 1px 6px; border-radius: 3px; }
+    .links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+    .links a { font-family: var(--mono); font-size: .85rem; color: var(--accent); text-decoration: none; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 6px; transition: all .15s; }
+    .links a:hover { border-color: var(--accent); background: rgba(167, 139, 250, .08); }
+    .endpoints { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: var(--mono); font-size: .85rem; overflow-x: auto; }
+    .endpoints pre { margin: 0; white-space: pre; color: var(--fg-2); }
+    .endpoints .method { color: var(--accent-2); }
+    .endpoints .path { color: var(--accent); }
+    footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); font-size: .85rem; color: var(--fg-3); }
+    footer a { color: var(--fg-2); text-decoration: none; border-bottom: 1px dotted var(--fg-3); }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>effect-agents</h1>
+    <p class="tagline">Five hero examples of effectful AI agents built on <a href="https://github.com/Effect-TS/effect-smol" style="color:var(--accent-2);">Effect v4 (beta)</a>. Pure Effect programs; one Cloudflare Worker hosts all five.</p>
+    <div class="quick"><span style="color:var(--fg-3);">$</span> git clone https://github.com/acoyfellow/effect-agents<br><span style="color:var(--fg-3);">$</span> cd effect-agents &amp;&amp; bun install<br><span style="color:var(--fg-3);">$</span> bun run smoke      <span style="color:var(--fg-3);"># all 5 examples — no API key required</span></div>
+  </header>
+
+  <h2>The gallery</h2>
+  <ol class="gallery">
+    <li><a href="https://github.com/acoyfellow/effect-agents/tree/main/examples/01-parallel-research"><span class="num">01</span><span class="name">parallel-research</span><span class="hero"><code>concurrency</code> · <code>Schedule.exponential</code> · <code>generateObject</code></span></a></li>
+    <li><a href="https://github.com/acoyfellow/effect-agents/tree/main/examples/02-streaming-tools"><span class="num">02</span><span class="name">streaming-tools</span><span class="hero"><code>Stream</code> + <code>Scope</code> interruption</span></a></li>
+    <li><a href="https://github.com/acoyfellow/effect-agents/tree/main/examples/03-approval-gated"><span class="num">03</span><span class="name">approval-gated</span><span class="hero"><code>Tool.make({ needsApproval })</code></span></a></li>
+    <li><a href="https://github.com/acoyfellow/effect-agents/tree/main/examples/04-typed-errors"><span class="num">04</span><span class="name">typed-errors</span><span class="hero"><code>Effect.catchTag</code> over <code>AiError</code></span></a></li>
+    <li><a href="https://github.com/acoyfellow/effect-agents/tree/main/examples/05-mcp-from-toolkit"><span class="num">05</span><span class="name">mcp-from-toolkit</span><span class="hero"><code>McpServer.layerHttp</code> reuses your <code>Toolkit</code></span></a></li>
+  </ol>
+
+  <h2>Try it live</h2>
+  <p>This site IS the deployed Worker. Each example is callable:</p>
+  <div class="endpoints"><pre><span class="method">POST</span> <span class="path">/01</span>           parallel-research
+<span class="method">POST</span> <span class="path">/02</span>           streaming-tools (NDJSON)
+<span class="method">POST</span> <span class="path">/03</span>           approval-gated turn 1
+<span class="method">POST</span> <span class="path">/03/decide</span>    approval-gated turn 2
+<span class="method">POST</span> <span class="path">/04</span>           typed-errors
+<span class="method">POST</span> <span class="path">/05</span>           mcp-from-toolkit
+<span class="method">*</span>    <span class="path">/mcp</span>          MCP HTTP transport
+<span class="method">GET</span>  <span class="path">/health</span></pre></div>
+  <p style="margin-top:1rem;">Example:</p>
+  <div class="quick"><span style="color:var(--fg-3);">$</span> curl -sS https://effect-agents.coey.dev/health</div>
+
+  <h2>Docs</h2>
+  <div class="links">
+    <a href="https://github.com/acoyfellow/effect-agents/tree/main/docs/tutorials">Tutorials</a>
+    <a href="https://github.com/acoyfellow/effect-agents/tree/main/docs/how-to">How-to</a>
+    <a href="https://github.com/acoyfellow/effect-agents/tree/main/docs/reference">Reference</a>
+    <a href="https://github.com/acoyfellow/effect-agents/tree/main/docs/explanation">Explanation</a>
+    <a href="https://github.com/acoyfellow/effect-agents/blob/main/ARCHITECTURE.md">Architecture</a>
+    <a href="https://github.com/acoyfellow/effect-agents">GitHub</a>
+  </div>
+
+  <footer>
+    Pinned to <code>effect@4.0.0-beta.73</code> + <code>@effect/ai-openai-compat@4.0.0-beta.73</code>. v4 is <strong>beta</strong>; expect churn until 4.0.0 final.<br>
+    MIT · <a href="https://github.com/acoyfellow/effect-agents">github.com/acoyfellow/effect-agents</a> · <a href="https://coey.dev">coey.dev</a>
+  </footer>
+</main>
+</body>
+</html>
