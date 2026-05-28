@@ -7,6 +7,7 @@ export type NavItem = { title: string; href: string; prefix?: string; external?:
 export type NavSection = { title: string; href: string; items: ReadonlyArray<NavItem> }
 export type SiteNav = {
   agents: NavSection
+  integrations?: NavSection
   guides: ReadonlyArray<NavSection>
   extras: ReadonlyArray<NavItem>
 }
@@ -415,6 +416,8 @@ export const renderLayout = (opts: LayoutOptions): string => {
     <a href="/" class="brand">effect-agents<span class="v">v4 · beta</span></a>
 
     ${renderNavSection(nav.agents, pathname)}
+
+    ${nav.integrations ? renderNavSection(nav.integrations, pathname) : ""}
 
     ${nav.guides.map((s) => renderNavSection(s, pathname)).join("\n")}
 

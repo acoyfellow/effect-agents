@@ -147,6 +147,7 @@ const docsRoute = (section: string, slug: string) =>
   slug === "index" ? `/${section}` : `/${section}/${slug}`
 
 const examplesRoute = (slug: string) => `/agents/${slug}`
+const integrationsRoute = (slug: string) => `/integrations/${slug}`
 
 // ──────────────────────────────────────────────────────────────────
 // Build each kind of page
@@ -203,13 +204,74 @@ const collectExamples = async (): Promise<
   return out
 }
 
+// Host integrations (Flue, Think). Each is a single source file + README.
+// We accept agent.ts OR worker.ts depending on the host shape.
+const collectIntegrations = async (): Promise<
+  Array<{
+    route: string
+    slug: string
+    meta: PageMeta
+    sourceTs: string
+    sourceFilename: string
+    readmeMd: string
+    sourcePath: string
+  }>
+> => {
+  const dir = join(ROOT, "integrations")
+  let entries: string[] = []
+  try {
+    entries = await readdir(dir)
+  } catch {
+    return []
+  }
+  entries.sort()
+  const out: Array<{
+    route: string
+    slug: string
+    meta: PageMeta
+    sourceTs: string
+    sourceFilename: string
+    readmeMd: string
+    sourcePath: string
+  }> = []
+  for (const slug of entries) {
+    // Look for agent.ts first, then worker.ts. Whichever exists is the source.
+    let sourceFilename: string | null = null
+    for (const candidate of ["agent.ts", "worker.ts"]) {
+      try {
+        await stat(join(dir, slug, candidate))
+        sourceFilename = candidate
+        break
+      } catch {
+        // try next
+      }
+    }
+    if (!sourceFilename) continue
+    const sourceTs = await readFile(join(dir, slug, sourceFilename), "utf-8")
+    const readmePath = join(dir, slug, "README.md")
+    const readmeMd = await readFile(readmePath, "utf-8").catch(() => "")
+    const { title, description } = extractMeta(readmeMd, slug)
+    out.push({
+      route: integrationsRoute(slug),
+      slug,
+      meta: { title: title || slug, description, section: "integrations" },
+      sourceTs,
+      sourceFilename,
+      readmeMd,
+      sourcePath: readmePath
+    })
+  }
+  return out
+}
+
 // ──────────────────────────────────────────────────────────────────
 // Build the SiteNav from the collected content
 // ──────────────────────────────────────────────────────────────────
 
 const buildNav = (
   examples: Awaited<ReturnType<typeof collectExamples>>,
-  docs: Awaited<ReturnType<typeof collectDocs>>
+  docs: Awaited<ReturnType<typeof collectDocs>>,
+  integrations: Awaited<ReturnType<typeof collectIntegrations>>
 ): SiteNav => {
   const sectionLabel = (section: string): string => {
     switch (section) {
@@ -242,6 +304,17 @@ const buildNav = (
         prefix: e.slug.slice(0, 2)
       }))
     },
+    integrations:
+      integrations.length > 0
+        ? {
+            title: "Integrations",
+            href: "/integrations",
+            items: integrations.map((i) => ({
+              title: i.meta.title.replace(/\s*\+\s*Effect$/, ""),
+              href: i.route
+            }))
+          }
+        : undefined,
     guides: [
       docSection("tutorials"),
       docSection("how-to"),
@@ -344,6 +417,79 @@ const renderIndexPage = (
       body
     }),
     meta: { title: index?.meta.title ?? section, description: index?.meta.description ?? "", section }
+  }
+}
+
+const renderIntegrationPage = (
+  i: {
+    route: string
+    slug: string
+    meta: PageMeta
+    sourceTs: string
+    sourceFilename: string
+    readmeMd: string
+    sourcePath: string
+  },
+  nav: SiteNav
+): Page => {
+  const sourceHtml = highlightCode(i.sourceTs, "ts")
+  const { bodyMd } = extractMeta(i.readmeMd, i.meta.title)
+  const proseHtml = renderMarkdown(bodyMd, i.sourcePath)
+  const body = `
+    <p class="label">integrations · ${escapeHtml(i.slug)}</p>
+    <h1>${escapeHtml(i.meta.title)}</h1>
+    <p class="lede">${escapeHtml(i.meta.description)}</p>
+
+    <section class="source-block">
+      <p class="sublabel">${escapeHtml(`integrations/${i.slug}/${i.sourceFilename}`)}</p>
+      <div class="source">${sourceHtml}</div>
+    </section>
+
+    <article class="prose">${proseHtml}</article>
+  `
+  return {
+    html: renderLayout({
+      pathname: i.route,
+      title: i.meta.title,
+      description: i.meta.description,
+      nav,
+      body
+    }),
+    meta: i.meta
+  }
+}
+
+const renderIntegrationsIndex = (
+  integrations: Awaited<ReturnType<typeof collectIntegrations>>,
+  nav: SiteNav
+): Page => {
+  const body = `
+    <p class="label">integrations</p>
+    <h1>Host integrations</h1>
+    <p class="lede">The same Effect-agent shape, embedded in a host framework. One line of glue per host.</p>
+    <ol class="gallery">
+      ${integrations
+        .map(
+          (i) => `<li><a href="${i.route}">
+        <span class="num">${"·"}</span>
+        <span class="body">
+          <span class="name">${escapeHtml(i.meta.title)}</span>
+          ${i.meta.description ? `<span class="hero">${escapeHtml(i.meta.description)}</span>` : ""}
+        </span>
+      </a></li>`
+        )
+        .join("\n")}
+    </ol>
+  `
+  return {
+    html: renderLayout({
+      pathname: "/integrations",
+      title: "Integrations",
+      description: "Effect agents embedded in host frameworks (Flue, Think).",
+      nav,
+      body
+    }),
+    meta: { title: "Integrations", description: "", section: "integrations" }
   }
 }
 
@@ -493,7 +639,8 @@ const main = async () => {
 
   const examples = await collectExamples()
   const docs = await collectDocs()
-  const nav = buildNav(examples, docs)
+  const integrations = await collectIntegrations()
+  const nav = buildNav(examples, docs, integrations)
 
   const pages: Record<string, Page> = {}
 
@@ -514,6 +661,9 @@ const main = async () => {
   for (const e of examples) pages[e.route] = renderExamplePage(e, nav)
   // Agents index
   pages["/agents"] = renderAgentsIndex(examples, nav)
+  // Per-integration pages + index
+  for (const i of integrations) pages[i.route] = renderIntegrationPage(i, nav)
+  if (integrations.length > 0) pages["/integrations"] = renderIntegrationsIndex(integrations, nav)
   // Architecture
   pages["/architecture"] = await renderArchitecture(nav)
   // API reference (de-emphasized)
