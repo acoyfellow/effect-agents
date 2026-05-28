@@ -1,52 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0a0f"/>
-      <stop offset="1" stop-color="#1a0f2e"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#a78bfa"/>
-      <stop offset="1" stop-color="#34d399"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="6" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <!-- subtle grid -->
-  <g stroke="#2a1f4a" stroke-width="1" opacity="0.4">
-    <line x1="0" y1="105" x2="1200" y2="105"/>
-    <line x1="0" y1="210" x2="1200" y2="210"/>
-    <line x1="0" y1="315" x2="1200" y2="315"/>
-    <line x1="0" y1="420" x2="1200" y2="420"/>
-    <line x1="0" y1="525" x2="1200" y2="525"/>
-    <line x1="200" y1="0" x2="200" y2="630"/>
-    <line x1="400" y1="0" x2="400" y2="630"/>
-    <line x1="600" y1="0" x2="600" y2="630"/>
-    <line x1="800" y1="0" x2="800" y2="630"/>
-    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+
+  <!-- top hairline label -->
+  <line x1="80" y1="100" x2="1120" y2="100" stroke="#27272a" stroke-width="1"/>
+  <text x="80" y="80" font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-weight="500" font-size="20" fill="#52525b" letter-spacing="3">AN EXPERIMENT  ·  MAY 2026</text>
+
+  <!-- huge headline -->
+  <text x="80" y="280" font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-weight="700" font-size="120" fill="#f4f4f5" letter-spacing="-5">effect-agents</text>
+
+  <!-- human tagline -->
+  <text x="80" y="340" font-family="'Google Sans Flex', ui-sans-serif, system-ui, sans-serif" font-weight="500" font-size="30" fill="#a1a1aa">Five small AI agents, each in one file,</text>
+  <text x="80" y="382" font-family="'Google Sans Flex', ui-sans-serif, system-ui, sans-serif" font-weight="500" font-size="30" fill="#a1a1aa">built with Effect v4.</text>
+
+  <!-- middle hairline -->
+  <line x1="80" y1="450" x2="1120" y2="450" stroke="#27272a" stroke-width="1"/>
+
+  <!-- the five (column 1) -->
+  <g font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-size="20" fill="#d4d4d8">
+    <text x="80" y="500"><tspan fill="#52525b">01 </tspan>parallel-research</text>
+    <text x="80" y="535"><tspan fill="#52525b">02 </tspan>streaming-tools</text>
+    <text x="80" y="570"><tspan fill="#52525b">03 </tspan>approval-gated</text>
   </g>
-  <!-- title -->
-  <text x="80" y="180" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-weight="700" font-size="96" fill="url(#accent)" filter="url(#glow)">effect-agents</text>
-  <!-- tagline -->
-  <text x="80" y="240" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="500" font-size="32" fill="#e4e4e7">Five hero examples of effectful AI agents.</text>
-  <text x="80" y="285" font-family="ui-sans-serif, system-ui, sans-serif" font-weight="400" font-size="28" fill="#a1a1aa">Pure Effect programs · one Cloudflare Worker hosts all five.</text>
-  <!-- bullets -->
-  <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="24" fill="#d4d4d8">
-    <text x="80" y="380"><tspan fill="#34d399">▸</tspan> parallel-research</text>
-    <text x="80" y="420"><tspan fill="#34d399">▸</tspan> streaming-tools</text>
-    <text x="80" y="460"><tspan fill="#34d399">▸</tspan> approval-gated</text>
-    <text x="620" y="380"><tspan fill="#34d399">▸</tspan> typed-errors</text>
-    <text x="620" y="420"><tspan fill="#34d399">▸</tspan> mcp-from-toolkit</text>
+
+  <!-- the five (column 2) -->
+  <g font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-size="20" fill="#d4d4d8">
+    <text x="620" y="500"><tspan fill="#52525b">04 </tspan>typed-errors</text>
+    <text x="620" y="535"><tspan fill="#52525b">05 </tspan>mcp-from-toolkit</text>
   </g>
-  <!-- footer -->
-  <text x="80" y="570" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="22" fill="#71717a">$ bun install &amp;&amp; bun run smoke</text>
-  <text x="80" y="600" font-family="ui-sans-serif, system-ui, sans-serif" font-size="18" fill="#52525b">Effect v4 (beta) · MIT · github.com/acoyfellow/effect-agents</text>
-  <!-- corner ornament -->
-  <g transform="translate(1050, 90)" opacity="0.9">
-    <circle cx="0" cy="0" r="60" fill="none" stroke="url(#accent)" stroke-width="2"/>
-    <circle cx="0" cy="0" r="40" fill="none" stroke="url(#accent)" stroke-width="2" opacity="0.6"/>
-    <circle cx="0" cy="0" r="20" fill="url(#accent)" opacity="0.4"/>
-  </g>
+
+  <!-- footer hairline -->
+  <line x1="80" y1="600" x2="1120" y2="600" stroke="#27272a" stroke-width="1"/>
+  <text x="80" y="615" font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-size="14" fill="#52525b" letter-spacing="2">EFFECT-AGENTS.COEY.DEV</text>
+  <text x="1120" y="615" font-family="'Google Sans Code', ui-monospace, Menlo, monospace" font-size="14" fill="#52525b" text-anchor="end" letter-spacing="2">GITHUB.COM/ACOYFELLOW</text>
 </svg>

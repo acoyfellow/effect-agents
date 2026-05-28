@@ -1,10 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#a78bfa"/>
-      <stop offset="1" stop-color="#34d399"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="12" fill="#0a0a0f"/>
-  <text x="32" y="44" font-family="ui-monospace, monospace" font-weight="700" font-size="36" text-anchor="middle" fill="url(#g)">e</text>
+  <rect width="64" height="64" rx="6" fill="#0a0a0f"/>
+  <text x="32" y="46" font-family="'Google Sans Code', ui-monospace, monospace" font-weight="700" font-size="42" text-anchor="middle" fill="#f4f4f5" letter-spacing="-2">e</text>
 </svg>
