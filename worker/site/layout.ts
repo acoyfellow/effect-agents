@@ -97,12 +97,12 @@ export const renderLayout = (opts: LayoutOptions): string => {
       --fg-3: #52525b;
       --line: #27272a;
       --line-2: #1f1f23;
-      --hot: #34d399;
+      --hot: #F38020;
       --sans: "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, sans-serif;
       --mono: "Google Sans Code", ui-monospace, "SF Mono", Menlo, Monaco, monospace;
     }
     @media (prefers-color-scheme: light) {
-      :root { --bg: #fafafa; --bg-2: #fff; --fg: #09090b; --fg-2: #52525b; --fg-3: #a1a1aa; --line: #e4e4e7; --line-2: #f4f4f5; --hot: #059669; }
+      :root { --bg: #fafafa; --bg-2: #fff; --fg: #09090b; --fg-2: #52525b; --fg-3: #a1a1aa; --line: #e4e4e7; --line-2: #f4f4f5; --hot: #D9651A; }
     }
     *,*:before,*:after { box-sizing: border-box; }
     body {
@@ -354,55 +354,47 @@ export const renderLayout = (opts: LayoutOptions): string => {
       color: var(--fg-3);
       border-bottom: 1px solid var(--line);
     }
-    .prose code {
+    /* Inline code in flowing prose (not inside a pre). */
+    .prose :not(pre) > code {
       font-family: var(--mono);
       font-size: .85em;
       background: var(--bg-2);
       padding: 1px 6px;
       border-radius: 3px;
       color: var(--fg);
+      border: 1px solid var(--line);
     }
-    .prose pre {
+
+    /* Shiki blocks — keep shiki's per-span inline colors. Only restyle the
+       outer pre; never set color on the inner code. */
+    pre.shiki {
       margin: 1.5rem 0;
       padding: 1rem 1.25rem;
-      background: var(--bg-2) !important;
+      background-color: #0d1117 !important;
       border: 1px solid var(--line);
       border-radius: 6px;
       overflow-x: auto;
       font-family: var(--mono);
       font-size: .85rem;
-      line-height: 1.55;
+      line-height: 1.6;
     }
-    .prose pre code {
+    pre.shiki code {
+      display: block;
       background: transparent;
       padding: 0;
       border-radius: 0;
+      border: 0;
       font-size: inherit;
-      color: inherit;
+      /* deliberately no color here — shiki sets per-span inline colors */
     }
+    pre.shiki .line { display: block; min-height: 1.6em; }
 
     /* ──────────────────────────────────────────────── */
     /*  Agent source block                               */
     /* ──────────────────────────────────────────────── */
+    /* Agent source block: outer chrome for the highlighted agent.ts on /agents/<slug> */
     .source-block { margin: 2rem 0 3rem; }
-    .source {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: .82rem;
-      line-height: 1.55;
-    }
-    .source pre {
-      margin: 0;
-      padding: 1.25rem 1.5rem;
-      background: transparent !important;
-    }
-    .source code { background: transparent; padding: 0; }
-
-    /* Make shiki backgrounds transparent so our --bg-2 shows through */
-    pre.shiki { background: transparent !important; }
+    .source pre.shiki { margin: 0; font-size: .82rem; }
 
     footer {
       margin-top: 6rem;

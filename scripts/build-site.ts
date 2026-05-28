@@ -44,10 +44,60 @@ const highlightCode = (code: string, lang: string): string => {
   }
 }
 
-// Hook into marked's default code renderer
-const renderMarkdown = (md: string): string => {
+// Map a source-file-relative `.md` path to its clean site route.
+// `sourcePath` is the absolute filesystem path of the markdown that contains
+// the link (so we can resolve relatives like `../how-to/foo.md`).
+const rewriteInternalLink = (href: string, sourcePath: string): string => {
+  // Leave external links and anchors alone.
+  if (/^(https?:|mailto:|#)/.test(href)) return href
+  if (!href.includes(".md")) return href
+
+  // Split off any `#anchor` so we can re-attach later.
+  const [pathPart, hashPart] = href.split("#", 2)
+  const hash = hashPart ? `#${hashPart}` : ""
+
+  // Resolve the relative .md against the source file's directory.
+  const sourceDir = sourcePath.substring(0, sourcePath.lastIndexOf("/"))
+  const abs = new URL(pathPart!, `file://${sourceDir}/`).pathname
+  // Normalize to a repo-relative path (strip the repo root prefix).
+  const rootPrefix = ROOT.endsWith("/") ? ROOT : `${ROOT}/`
+  const repoRel = abs.startsWith(rootPrefix) ? abs.slice(rootPrefix.length) : abs.replace(/^\//, "")
+
+  // Map to clean routes.
+  // docs/<section>/<slug>.md  →  /<section>/<slug>   (or /<section> for index.md)
+  let m = repoRel.match(/^docs\/([^/]+)\/(.+)\.md$/)
+  if (m) {
+    const section = m[1]!
+    const slug = m[2]!
+    return (slug === "index" ? `/${section}` : `/${section}/${slug}`) + hash
+  }
+
+  // examples/<NN-name>/README.md → /agents/<NN-name>
+  m = repoRel.match(/^examples\/([^/]+)\/README\.md$/)
+  if (m) return `/agents/${m[1]}${hash}`
+
+  // ARCHITECTURE.md → /architecture
+  if (repoRel === "ARCHITECTURE.md") return `/architecture${hash}`
+
+  // README.md → /
+  if (repoRel === "README.md") return `/${hash}`
+
+  // Unknown .md target — leave the original href (will 404 visibly so we notice).
+  return href
+}
+
+// Hook into marked's renderer so:
+//   - code blocks get shiki-highlighted
+//   - .md links get rewritten to clean site routes
+const renderMarkdown = (md: string, sourcePath = ""): string => {
   const renderer = new marked.Renderer()
   renderer.code = ({ text, lang }) => highlightCode(text, lang || "ts")
+  renderer.link = ({ href, title, tokens }) => {
+    const rewritten = sourcePath ? rewriteInternalLink(href, sourcePath) : href
+    const inner = renderer.parser.parseInline(tokens)
+    const t = title ? ` title="${title}"` : ""
+    return `<a href="${rewritten}"${t}>${inner}</a>`
+  }
   marked.setOptions({ renderer, gfm: true, breaks: false })
   return marked.parse(md) as string
 }
@@ -102,9 +152,9 @@ const examplesRoute = (slug: string) => `/agents/${slug}`
 // Build each kind of page
 // ──────────────────────────────────────────────────────────────────
 
-const collectDocs = async (): Promise<Array<{ route: string; meta: PageMeta; bodyMd: string }>> => {
+const collectDocs = async (): Promise<Array<{ route: string; meta: PageMeta; bodyMd: string; sourcePath: string }>> => {
   const sections = ["tutorials", "how-to", "reference", "explanation"]
-  const out: Array<{ route: string; meta: PageMeta; bodyMd: string }> = []
+  const out: Array<{ route: string; meta: PageMeta; bodyMd: string; sourcePath: string }> = []
   for (const section of sections) {
     const dir = join(ROOT, "docs", section)
     let entries: string[] = []
@@ -115,12 +165,14 @@ const collectDocs = async (): Promise<Array<{ route: string; meta: PageMeta; bod
     }
     for (const file of entries) {
       const slug = file.replace(/\.md$/, "")
-      const md = await readFile(join(dir, file), "utf-8")
+      const sourcePath = join(dir, file)
+      const md = await readFile(sourcePath, "utf-8")
       const { title, description, bodyMd } = extractMeta(md, slug)
       out.push({
         route: docsRoute(section, slug),
         meta: { title, description, section },
-        bodyMd
+        bodyMd,
+        sourcePath
       })
     }
   }
@@ -128,22 +180,24 @@ const collectDocs = async (): Promise<Array<{ route: string; meta: PageMeta; bod
 }
 
 const collectExamples = async (): Promise<
-  Array<{ route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string }>
+  Array<{ route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string; sourcePath: string }>
 > => {
   const dir = join(ROOT, "examples")
   const entries = (await readdir(dir)).filter((f) => /^\d{2}-/.test(f))
   entries.sort()
-  const out: Array<{ route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string }> = []
+  const out: Array<{ route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string; sourcePath: string }> = []
   for (const slug of entries) {
     const agentTs = await readFile(join(dir, slug, "agent.ts"), "utf-8")
-    const readmeMd = await readFile(join(dir, slug, "README.md"), "utf-8").catch(() => "")
+    const readmePath = join(dir, slug, "README.md")
+    const readmeMd = await readFile(readmePath, "utf-8").catch(() => "")
     const { title, description } = extractMeta(readmeMd, slug)
     out.push({
       route: examplesRoute(slug),
       slug,
       meta: { title: title || slug, description, section: "agents" },
       agentTs,
-      readmeMd
+      readmeMd,
+      sourcePath: readmePath
     })
   }
   return out
@@ -207,13 +261,13 @@ const buildNav = (
 // ──────────────────────────────────────────────────────────────────
 
 const renderDocPage = (
-  d: { route: string; meta: PageMeta; bodyMd: string },
+  d: { route: string; meta: PageMeta; bodyMd: string; sourcePath: string },
   nav: SiteNav
 ): Page => {
   const body = `
     <p class="label">${escapeHtml(d.meta.section ?? "")}</p>
     <h1>${escapeHtml(d.meta.title)}</h1>
-    <article class="prose">${renderMarkdown(d.bodyMd)}</article>
+    <article class="prose">${renderMarkdown(d.bodyMd, d.sourcePath)}</article>
   `
   return {
     html: renderLayout({ pathname: d.route, title: d.meta.title, description: d.meta.description, nav, body }),
@@ -222,13 +276,13 @@ const renderDocPage = (
 }
 
 const renderExamplePage = (
-  e: { route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string },
+  e: { route: string; slug: string; meta: PageMeta; agentTs: string; readmeMd: string; sourcePath: string },
   nav: SiteNav
 ): Page => {
   const sourceHtml = highlightCode(e.agentTs, "ts")
   // Drop the H1 of the README (we render the title ourselves)
   const { bodyMd } = extractMeta(e.readmeMd, e.meta.title)
-  const proseHtml = renderMarkdown(bodyMd)
+  const proseHtml = renderMarkdown(bodyMd, e.sourcePath)
   const body = `
     <p class="label">agents · ${e.slug.slice(0, 2)}</p>
     <h1>${escapeHtml(e.meta.title)}</h1>
@@ -262,10 +316,11 @@ const renderIndexPage = (
   const index = sectionDocs.find((d) => d.route === `/${section}`)
   const others = sectionDocs.filter((d) => d.route !== `/${section}`)
   const introMd = index?.bodyMd ?? ""
+  const introSourcePath = index?.sourcePath ?? join(ROOT, "docs", section, "index.md")
   const body = `
     <p class="label">${escapeHtml(section)}</p>
     <h1>${escapeHtml(index?.meta.title ?? section)}</h1>
-    <article class="prose">${renderMarkdown(introMd)}</article>
+    <article class="prose">${renderMarkdown(introMd, introSourcePath)}</article>
     <ol class="gallery">
       ${others
         .map(
@@ -327,12 +382,13 @@ const renderAgentsIndex = (
 }
 
 const renderArchitecture = async (nav: SiteNav): Promise<Page> => {
-  const md = await readFile(join(ROOT, "ARCHITECTURE.md"), "utf-8")
+  const archPath = join(ROOT, "ARCHITECTURE.md")
+  const md = await readFile(archPath, "utf-8")
   const { title, description, bodyMd } = extractMeta(md, "Architecture")
   const body = `
     <p class="label">contributors</p>
     <h1>${escapeHtml(title)}</h1>
-    <article class="prose">${renderMarkdown(bodyMd)}</article>
+    <article class="prose">${renderMarkdown(bodyMd, archPath)}</article>
   `
   return {
     html: renderLayout({ pathname: "/architecture", title, description, nav, body }),
