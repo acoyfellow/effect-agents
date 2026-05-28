@@ -1,0 +1,28 @@
+{
+  "name": "effect-agents",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Five hero examples of effectful AI agents built on Effect v4 (beta). One source of truth per example; runs locally with Bun, deploys as one Cloudflare Worker.",
+  "type": "module",
+  "scripts": {
+    "smoke": "bun scripts/smoke.ts",
+    "probe:local": "bun probes/local.ts",
+    "probe:remote": "bun probes/remote.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "worker:dev": "wrangler dev --config worker/wrangler.jsonc",
+    "worker:deploy": "wrangler deploy --config worker/wrangler.jsonc"
+  },
+  "dependencies": {
+    "@effect/ai-openai-compat": "4.0.0-beta.73",
+    "effect": "4.0.0-beta.73"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@cloudflare/workers-types": "^4.20260521.1",
+    "@types/bun": "latest",
+    "typescript": "^5.6.3",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "effect-agents",
+  "main": "worker.ts",
+  "compatibility_date": "2026-05-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "EFFECT_AGENTS_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  }
+  // Provide CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN via `wrangler secret put`
+  // before deploying. Locally, `bun run worker:dev` reads them from the env.
+}
